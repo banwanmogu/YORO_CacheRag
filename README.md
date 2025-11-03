@@ -155,3 +155,7 @@ cache.stats()
 
 ## 📸 预览
 ![alt text](image.png)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=banwanmogu/YORO_CacheRag&type=date&legend=top-left)](https://www.star-history.com/#banwanmogu/YORO_CacheRag&type=date&legend=top-left)
