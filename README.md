@@ -2,7 +2,7 @@
 
 [🇨🇳 中文](README.md) | [🇺🇸 English](README_ENG.md)
 
-![alt text](image-2.png)
+<img src="image-2.png" width="150" alt="YORO Logo" />
 
 # 为什么使用 YORO？
 
