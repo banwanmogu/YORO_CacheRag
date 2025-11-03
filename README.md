@@ -1,8 +1,39 @@
-# 🧠 FlowCacheRag —— 具有语义缓存的 RAG 智能体 (LRU + 嵌入相似度)
+# 🧠YORO ——you only rag once—— LRU缓存 —— 面对现实场景重复问题，仅需rag一次！——动态缓存替换算法
+
+[🇨🇳 中文](README.md) | [🇺🇸 English](README_ENG.md)
 
 ![alt text](image-1.png)
 
-> 🚀 这是一个轻量级的 **LangChain** 项目，集成了**动态特征感知的 LRU 缓存**、**向量检索 (RAG)**和检索增强生成（RAG）—— 优化用于**高效语义复用**和**低延迟上下文检索**。
+## 为什么使用YORO？
+# 缓存
+在企业级真实场景中，例如客服机器人，文档解释助手，用户需要的信息 往往都在同一个段落中。
+
+普通rag例：
+Q1：YORO作者mogu今年多少岁？   模型选择调用rag，查询到 mogu今年23岁。
+Q2：YORO作者mogu目前居住在哪？  模型选择调用rag，查询到mogu目前居住在日本。
+Q3：YORO作者mogu是程序员吗？    模型选择调用rag，查询到mogu是一个程序员。
+....
+
+非常低效！可以看到模型调用了多次rag，每次都要对向量数据库进行查询。但是信息都在rag文档中的一句话中：
+YORO作者mogu是一个目前居住在日本的23岁程序员。
+
+
+YORO例：
+Q1：YORO作者mogu今年多少岁？   模型选择调用rag，查询到 mogu今年23岁。并将【YORO作者mogu是一个目前居住在日本的23岁程序员。】的向量化信息存贮到缓存中。
+Q2：YORO作者mogu目前居住在哪？  模型查询缓存 hit！ 直接返回mogu目前在日本。
+Q3：YORO作者mogu是程序员吗？    模型查询缓存 hit！ 直接返回mogu是一个程序员。
+
+高效面对真实的rag场景！
+
+# LRU替换算法
+YORO实现了LRU替换算法！类似计算机内存的替换算法，高效且符合实际场景使用
+
+当询问的问题往往不在缓存中时，缓存会优先淘汰最近没有使用的块！
+
+每个缓存块设计了一个【存在位】，当缓存调出的时候设置为0，类似计算机内存的【无需重写】
+
+
+> 🚀 YORO是基于**LangChain** 的项目，集成了**动态特征感知的 LRU 缓存**、和检索增强生成（RAG）—— 优化**高效语义复用**。
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python)
 ![LangChain](https://img.shields.io/badge/LangChain-✅-green?logo=chainlink)
@@ -14,8 +45,8 @@
 
 ## 🌟 主要特性
 
-✅ **RAG 增强智能体**
-- 使用 `InMemoryVectorStore` 从实际博客文章中进行语义检索
+✅ **RAG **
+- 使用 `InMemoryVectorStore` 进行语义检索
 - 使用 `RecursiveCharacterTextSplitter` 嵌入和分割大型文档
 
 ✅ **自定义语义缓存**
@@ -27,32 +58,11 @@
 - 使用 `InMemorySaver` 进行内存检查点
 - 支持带有持久化上下文的*多轮*对话
 
-✅ **结构化输出**
-- 响应遵循严格的模式（`ResponseFormat`），确保结果整洁且类型安全
-
-✅ **可扩展工具**
-- `retrieve_context` — 具有缓存优先逻辑的混合检索
-- `search_web` — 模拟搜索工具（可替换为 Tavily / Serper / DuckDuckGo）
-
-✅ **专业设计**
-- 模块化架构
-- 类型注解 + 数据类，实现清晰的模式控制
-- 兼容 `gpt-4-turbo` 或更高版本
-
 ---
 
 ## 🧩 系统架构
 
-```mermaid
-flowchart TD
-    A[用户查询] --> |输入| B[LangGraph 智能体]
-    B --> |工具调用| C[语义缓存]
-    C --> |命中| D[返回缓存上下文]
-    C --> |未命中| E[向量存储 RAG]
-    E --> F[OpenAI 嵌入]
-    F --> |新文档| G[缓存添加 + 响应]
-    B --> |结构化输出| H[响应格式]
-```
+TODO
 
 ## 🧱 项目结构
 
