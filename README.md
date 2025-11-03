@@ -6,9 +6,10 @@
 <div align="center">
   <img src="image-2.png" width="300" alt="YORO Logo" />
    </div>
+
 # 为什么使用 YORO？
 
-## 1️⃣ 缓存的优势
+## 1️⃣ 缓存
 在企业级真实场景中（如客服机器人、文档解释助手），用户需要的信息往往集中在同一个段落中。
 
 ### 普通 RAG 示例
@@ -67,7 +68,7 @@ YORO 内置了 LRU 缓存替换算法，灵感来源于计算机内存管理：
 
 ## 🌟 主要特性
 
-✅ **RAG **
+✅ **RAG**
 - 使用 `InMemoryVectorStore` 进行语义检索
 - 使用 `RecursiveCharacterTextSplitter` 嵌入和分割大型文档
 
@@ -75,10 +76,6 @@ YORO 内置了 LRU 缓存替换算法，灵感来源于计算机内存管理：
 - LRU（最近最少使用）+ 基于余弦相似度的缓存
 - 智能缓存命中检测（可调节 `threshold`）
 - 减少重复的嵌入和检索成本
-
-✅ **LangGraph 集成**
-- 使用 `InMemorySaver` 进行内存检查点
-- 支持带有持久化上下文的*多轮*对话
 
 ---
 
