@@ -2,8 +2,10 @@
 
 [🇨🇳 中文](README.md) | [🇺🇸 English](README_ENG.md)
 
-<img src="image-2.png" width="150" alt="YORO Logo" />
 
+<div align="center">
+  <img src="image-2.png" width="300" alt="YORO Logo" />
+   </div>
 # 为什么使用 YORO？
 
 ## 1️⃣ 缓存的优势
