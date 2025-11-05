@@ -8,6 +8,11 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from rank_bm25 import BM25Okapi
+import re
+import nltk
+from typing import List, Tuple
+
 
 import bs4
 import getpass
@@ -72,6 +77,10 @@ class ResponseFormat:
 
 
 vector_store = InMemoryVectorStore(embeddings)
+
+
+
+
 
 
 bs4_strainer = bs4.SoupStrainer(class_=("post-title", "post-header", "post-content"))
@@ -203,9 +212,40 @@ document_ids = vector_store.add_documents(documents=all_splits)
 
 print(document_ids[:3])
 
+def simple_tokenize(text: str):
+    # 去掉多余换行，分割标点与空白
+    text = re.sub(r'\s+', ' ', text.strip())
+    # 简单按空白分词，针对英文/代码/混合文本效果合理
+    return text.split()
+
+# 如果你安装了 nltk 并想要更强分词（英文），可以改用：
+# from nltk.tokenize import word_tokenize
+# def nltk_tokenize(text: str):
+#     return word_tokenize(text)
+
+# 构建语料：把 all_splits 的 page_content 当作 document text
+corpus_texts = [d.page_content for d in all_splits]
+
+# 生成 tokens 列表
+corpus_tokens = [simple_tokenize(t) for t in corpus_texts]
+
+# 创建 BM25 索引
+bm25 = BM25Okapi(corpus_tokens)
+
+# 可选：保存反向索引或元数据映射（这里我们用索引号直接对应 all_splits）
+# doc_index -> all_splits[doc_index]
+print(f"BM25 索引构建完成，文档数: {len(corpus_tokens)}")
 
 
-
+def bm25_retrieve(query: str, top_k: int = 5, tokenizer=simple_tokenize) -> List[Tuple[int, float]]:
+    """
+    返回 [(doc_index, score), ...]，按 score 降序
+    """
+    q_tokens = tokenizer(query)
+    scores = bm25.get_scores(q_tokens)  # numpy array
+    # 取 top_k 索引（score 可能为 0 或负）
+    top_indices = np.argsort(scores)[::-1][:top_k]
+    return [(int(i), float(scores[i])) for i in top_indices]
 
 
 
@@ -224,37 +264,67 @@ print(document_ids[:3])
 
 # =========================
 
+
+# bm25_k	BM25 检索的候选数量	10
+# dense_k	向量检索的候选数量	5
+# bm25_threshold	触发 Dense 的门槛（最高分低于此值时触发）	2.0～3.0
+
 @tool(response_format="content_and_artifact")
-def retrieve_context(query: str):
+def retrieve_context(query: str, bm25_k: int = 10, dense_k: int = 5, bm25_threshold: float = 2.0):
     """
-    语义缓存优先策略：
-      1) 先在 semantic_cache 尝试命中（emb + cosine >= threshold）
-      2) 若命中，返回缓存中的序列化内容和 docs（节省检索开销）
-      3) 若未命中，走原向量库检索 vector_store.similarity_search(...)
-           并把序列化结果写入缓存
+    Cascade Retrieval:
+      1. 优先命中语义缓存
+      2. BM25 检索 → 若得分 >= 阈值则直接返回
+      3. 若得分低于阈值 → 再调用 Dense 向量检索
+      4. 所有结果都会写入语义缓存
     """
-    # 1) 尝试语义缓存命中
+
+    # 1️⃣ 语义缓存命中
     hit = semantic_cache.get(query)
     if hit is not None:
-        # 返回缓存命中结果，注意与原返回格式保持一致 (serialized, retrieved_docs)
         print(f"[Cache] HIT (score={hit['score']:.3f}) for query: {query[:50]}...")
         return hit["response"], hit["docs"]
 
-    # 2) 缓存未命中 -> 真正检索
-    print("[Cache] MISS -> doing vector store similarity_search...")
-    retrieved_docs = vector_store.similarity_search(query, k=2)
+    print("[Cache] MISS -> Starting cascade retrieval...")
+
+    # 2️⃣ BM25 检索阶段
+    bm25_results = bm25_retrieve(query, top_k=bm25_k)
+    bm25_scores = [s for _, s in bm25_results]
+    avg_score = np.mean(bm25_scores) if bm25_scores else 0.0
+    max_score = np.max(bm25_scores) if bm25_scores else 0.0
+    print(f"[BM25] avg_score={avg_score:.3f}, max_score={max_score:.3f}")
+
+    bm25_indices = [i for i, _ in bm25_results]
+    bm25_docs = [all_splits[i] for i in bm25_indices]
+
+    # 3️⃣ 判断是否触发 Dense 检索
+    if max_score >= bm25_threshold:
+        print(f"[Cascade] BM25 score sufficient (>= {bm25_threshold}). Skip Dense retrieval.")
+        merged_docs = bm25_docs
+    else:
+        print(f"[Cascade] BM25 score too low (< {bm25_threshold}). Triggering Dense retrieval...")
+        dense_docs = vector_store.similarity_search(query, k=dense_k)
+
+        # 合并（去重）
+        seen = set()
+        merged_docs = []
+        for d in bm25_docs + dense_docs:
+            key = getattr(d, "page_content", None)
+            if key not in seen:
+                seen.add(key)
+                merged_docs.append(d)
+
+    # 4️⃣ 序列化 + 缓存写入
     serialized = "\n\n".join(
-        (f"Source: {d.metadata}\nContent: {d.page_content}") for d in retrieved_docs
+        (f"Source: {d.metadata}\nContent: {d.page_content}") for d in merged_docs
     )
-    # 3) 把结果加入缓存
-    semantic_cache.add(query, serialized, retrieved_docs)
-    return serialized, retrieved_docs
+
+    semantic_cache.add(query, serialized, merged_docs)
+
+    return serialized, merged_docs
 
 
-@tool
-def search_web(query: str) -> str:
-    """Search the web for information about the query."""
-    return f"模拟搜索结果: '{query}'"
+
 
 
 
@@ -280,10 +350,10 @@ Your goal is to answer the user's question as concise, accurate and helpful as p
 
 ### RULES
 - You may call the `retrieve_context` tool **at most once** per user query.
-- If you think you already have enough knowledge to answer, DO NOT call the tool.
 - If the retrieval tool returns context, use it to synthesize the final short answer.
 - Never enter infinite loops, repeated tool calls, or repeated self-queries.
 - Always return the final answer in the ResponseFormat schema.
+-If user asks about blog content, use retrieve_context to get relevant information from the blog.
 
 ### Output Format Reminder
 - punny_response: must be playful / witty / pun style
@@ -299,7 +369,7 @@ When confident → answer directly.
 agent = create_agent(
     model=model,                        # 语言模型
     system_prompt=prompt,  # 系统角色提示
-    tools=[search_web,retrieve_context],           # 可用工具
+    tools=[retrieve_context],           # 可用工具
     context_schema=Context,             # 上下文类型定义
     response_format=ResponseFormat,     # 输出格式定义
     checkpointer=checkpointer           # 内存检查点（存储对话状态）
