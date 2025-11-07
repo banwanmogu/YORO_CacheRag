@@ -27,9 +27,7 @@
 
 ⚠️ **问题**：非常低效！可以看到模型调用了多次rag，每次都要对向量数据库进行查询。但是信息都在rag文档中的一句话中： 
 
-<div align="center">
-  <img src="image-1.png" width="300" alt="YORO Logo" />
-   </div>
+
 > 原文档内容：
 > ```
 > YORO 作者 mogu 是一个目前居住在日本的 23 岁程序员
@@ -62,7 +60,9 @@ YORO 内置了 LRU 缓存替换算法，灵感来源于计算机内存管理：
 - 避免无效缓存占用资源
 
 
-
+<div align="center">
+  <img src="image-1.png" width="300" alt="YORO Logo" />
+   </div>
 
 > 🚀 YORO是基于**LangChain** 的项目，集成了**动态特征感知的 LRU 缓存**、和检索增强生成（RAG）—— 优化**高效语义复用**。
 
