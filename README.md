@@ -8,6 +8,10 @@
   <img src="image-2.png" width="300" alt="YORO Logo" />
    </div>
 
+
+
+
+
 # 为什么使用 YORO？
 
 ## 1️⃣ 缓存
@@ -23,6 +27,9 @@
 
 ⚠️ **问题**：非常低效！可以看到模型调用了多次rag，每次都要对向量数据库进行查询。但是信息都在rag文档中的一句话中： 
 
+<div align="center">
+  <img src="image-1.png" width="300" alt="YORO Logo" />
+   </div>
 > 原文档内容：
 > ```
 > YORO 作者 mogu 是一个目前居住在日本的 23 岁程序员
