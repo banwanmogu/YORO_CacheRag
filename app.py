@@ -335,6 +335,7 @@ def retrieve_context(query: str, bm25_k: int = 10, dense_k: int = 5, bm25_thresh
     )
 
     semantic_cache.add(query, serialized, merged_docs)
+    print(f"写入了缓存！当前缓存状态: {semantic_cache.stats()}")
 
     return serialized, merged_docs
 
