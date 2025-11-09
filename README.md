@@ -2,10 +2,15 @@
 
 [🇨🇳 中文](README.md) | [🇺🇸 English](README_ENG.md)
 
+# webui版现已发布在webui分支！本地部署或者在线尝试：https://huggingface.co/spaces/MOGU111/YORO/tree/main
 
 <div align="center">
   <img src="image-2.png" width="300" alt="YORO Logo" />
    </div>
+
+
+
+
 
 # 为什么使用 YORO？
 
@@ -21,6 +26,7 @@
   → 模型再次调用 RAG，查询到：mogu 是一个程序员。
 
 ⚠️ **问题**：非常低效！可以看到模型调用了多次rag，每次都要对向量数据库进行查询。但是信息都在rag文档中的一句话中： 
+
 
 > 原文档内容：
 > ```
@@ -54,7 +60,9 @@ YORO 内置了 LRU 缓存替换算法，灵感来源于计算机内存管理：
 - 避免无效缓存占用资源
 
 
-
+<div align="center">
+  <img src="image-1.png" width="300" alt="YORO Logo" />
+   </div>
 
 > 🚀 YORO是基于**LangChain** 的项目，集成了**动态特征感知的 LRU 缓存**、和检索增强生成（RAG）—— 优化**高效语义复用**。
 
@@ -136,9 +144,7 @@ YORO 内置了 LRU 缓存替换算法，灵感来源于计算机内存管理：
 ├── 📝 .env                   # 环境变量（OPENAI_API_KEY）
 ├── 📦 requirements.txt       # 依赖项
 ├── 📖 README.md             # 文档说明
-└── 📂 utils/
-    ├── 🧠 semantic_cache.py  # 自定义 LRU + 嵌入缓存
-    └── 🔄 loaders.py        # Web基础加载器
+└── 🧠 test.py  # 自定义 LRU + 嵌入缓存
 ```
 
 ## ⚙️ 安装步骤

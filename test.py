@@ -13,7 +13,6 @@ import re
 import nltk
 from typing import List, Tuple
 
-
 import bs4
 import getpass
 import os
