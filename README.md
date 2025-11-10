@@ -61,7 +61,7 @@ cache 对高尾延迟（p99）有特别明显改善，说明在 repeated reasoni
   <img src="evaluate_result.png" width="420">
 </div>
 
-
+本项目的评估流程基于 LangSmith 完成。如需要自行复现实验与可视化监控，只需在 .env 文件中配置个人的 LANGSMITH_API_KEY，即可启用对应的监测、追踪与管理能力。
 
 
 ---
@@ -82,7 +82,7 @@ YORO 内置了 LRU 缓存替换算法，灵感来源于计算机内存管理：
   <img src="image-1.png" width="300" alt="YORO Logo" />
    </div>
 
-> 🚀 YORO是基于**LangChain** 的项目，集成了**动态特征感知的 LRU 缓存**、和检索增强生成（RAG）—— 优化**高效语义复用**。
+> 🚀 本项目基于**LangChain** ，集成了**动态特征感知的 LRU 缓存**、和检索增强生成（RAG）—— 优化**高效语义复用**。
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python)
 ![LangChain](https://img.shields.io/badge/LangChain-✅-green?logo=chainlink)
