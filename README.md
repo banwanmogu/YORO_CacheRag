@@ -14,7 +14,7 @@
 
 # 为什么使用 YORO？
 
-## 1️⃣ 缓存
+## 1️⃣ 现实repeated reasoning / semantically-close Q 场景优化
 在企业级真实场景中（如客服机器人、文档解释助手），用户需要的信息往往集中在同一个段落中。
 
 ### 普通 RAG 示例
@@ -45,6 +45,24 @@
 → 模型查询缓存 **命中**，直接返回：mogu 是一个程序员
 
 ✅ 高效应对真实 RAG 场景！减少重复查询，提高响应速度！
+
+---
+## 🌟 对比测试实验
+基于 Lilian Weng 2023 Agents 博客的知识结构，本项目设计了共 14 组成对问答样例，模拟真实场景中常见的 重复提问 与 同一领域语义近似提问。
+相比无 cache 的 baseline agent，引入 cache 后整体端到端响应性能显著改善：
+| Metric      | 优化幅度        |
+| ----------- | ----------- |
+| p50 latency | ↓ **13.6%** |
+| p99 latency | ↓ **28.6%** |
+
+cache 对高尾延迟（p99）有特别明显改善，说明在 repeated reasoning / semantically-close Q 的真实业务场景中具备可量化收益。
+
+<div align="center">
+  <img src="evaluate_result.png" width="420">
+</div>
+
+
+
 
 ---
 
